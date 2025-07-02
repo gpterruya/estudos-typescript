@@ -197,6 +197,64 @@ function registrarRotas(controllers: any[]) {
 });
 }
 
+function gerarEsquema(controllers: any[]) {
+  const rotas: any[] = [];
+
+  controllers.forEach((ControllerClass) => {
+    const prefix = Reflect.getMetadata("prefix", ControllerClass);
+    const prototype = ControllerClass.prototype;
+
+    Object.getOwnPropertyNames(prototype).forEach((methodName) => {
+      const path = Reflect.getMetadata("path", prototype, methodName);
+      const http = Reflect.getMetadata("method", prototype, methodName);
+      const schema = Reflect.getMetadata("zod", prototype, methodName);
+
+      if (path && http) {
+        rotas.push({
+          method: http,
+          path: `${prefix}${path}`,
+          handler: methodName,
+          schema: schema ? schema.toString() : null, // representando como string
+        });
+      }
+    });
+  });
+
+  return rotas;
+}
+
+import * as fs from "fs";
+
+function gerarArquivoRotas(rotas: any[]) {
+  const linhas = rotas.map((r) => {
+    return `{
+  method: "${r.method}",
+  path: "${r.path}",
+  handler: "${r.handler}",
+  schema: ${r.schema ? `"${r.schema}"` : "null"}
+}`;
+  });
+
+  const conteudo = `export const rotas = [\n${linhas.join(",\n")}\n];\n`;
+
+  fs.writeFileSync("rotasGeradas.ts", conteudo);
+}
+
+export const rotas = [
+{
+  method: "GET",
+  path: "/users/:id",
+  handler: "getById",
+  schema: null
+},
+{
+  method: "POST",
+  path: "/users",
+  handler: "create",
+  schema: "z.object({ nome: z.string(), idade: z.number() })"
+}
+];
+
 const conteudo = `export interface Rota {
   method: "GET" | "POST" | "PUT" | "DELETE";
   path: string;
