@@ -1,6 +1,8 @@
 {
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "graphql": "^16.11.0",
+    "graphql-request": "^7.2.0",
     "jest": "^30.0.2",
     "json-schema-to-zod": "^2.6.1",
     "openapi-typescript": "^7.8.0",
