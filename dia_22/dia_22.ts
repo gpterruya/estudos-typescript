@@ -133,3 +133,105 @@ export type Contract = {
  * 4. Escreva uma função createSmartSDK(contract) com inferência 100%
  * 5. Use esse SDK simulando requisições fetch, com autocomplete
  */
+
+// 🗂️ Estrutura
+// .
+// ├─ rotas.ts
+// ├─ sdk.ts
+// ├─ main.ts
+
+// rotas.ts
+import { z } from "zod";
+
+const schemaCriarProduto = z.object({
+  nome: z.string(),
+  preco: z.number().min(0),
+});
+
+const schemaProdutoSaida = z.object({
+  id: z.number(),
+  nome: z.string(),
+  preco: z.number(),
+});
+
+const schemaBuscarProduto = z.object({
+  id: z.number(),
+});
+
+export const rotas = {
+  criarProduto: {
+    metodo: "POST",
+    caminho: "/produto",
+    schemaEntrada: schemaCriarProduto,
+    schemaSaida: schemaProdutoSaida,
+  },
+
+  buscarProduto: {
+    metodo: "GET",
+    caminho: "/produto/:id",
+    schemaEntrada: schemaBuscarProduto,
+    schemaSaida: schemaProdutoSaida,
+  },
+};
+
+import { z } from "zod";
+
+// Inferência genérica das rotas
+export type Entrada<T> = T extends { schemaEntrada: infer I } ? z.infer<I> : never;
+export type Saida<T> = T extends { schemaSaida: infer O } ? z.infer<O> : never;
+
+export type Contract = {
+  [K in keyof typeof rotas]: {
+    input: Entrada<typeof rotas[K]>;
+    output: Saida<typeof rotas[K]>;
+    path: typeof rotas[K]["caminho"];
+    method: typeof rotas[K]["metodo"];
+  };
+};
+
+// sdk.ts
+import { rotas } from "./rotas";
+import { Entrada, Saida } from "./tipos"; // opcional separar
+
+export function createSmartSDK<R extends Record<string, any>>(rotas: R) {
+  const sdk: any = {};
+
+  for (const chave in rotas) {
+    const rota = rotas[chave];
+    sdk[chave] = async (input: Entrada<typeof rota>): Promise<Saida<typeof rota>> => {
+      console.log(`🟢 Chamando ${rota.metodo} ${rota.caminho}`, input);
+      // Simulando resposta
+      return {
+        id: 1,
+        nome: "Produto Teste",
+        preco: 99.9,
+      } as Saida<typeof rota>;
+    };
+  }
+
+  return sdk as {
+    [K in keyof R]: (input: Entrada<R[K]>) => Promise<Saida<R[K]>>;
+  };
+}
+
+// main.ts
+import { rotas } from "./rotas";
+import { createSmartSDK } from "./sdk";
+
+const sdk = createSmartSDK(rotas);
+
+// Autocomplete e tipagem automática:
+async function exemplo() {
+  const novoProduto = await sdk.criarProduto({
+    nome: "Teclado Gamer",
+    preco: 199.9,
+  });
+
+  console.log(novoProduto.id);    // number
+  console.log(novoProduto.nome);  // string
+
+  const buscado = await sdk.buscarProduto({ id: 1 });
+  console.log(buscado.nome); // string
+}
+
+exemplo();
