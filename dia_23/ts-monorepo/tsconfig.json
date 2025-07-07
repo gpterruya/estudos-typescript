@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@app/types": ["packages/types/src"],
+      "@app/sdk": ["packages/sdk/src"]
+    }
+  }
+}
