@@ -137,3 +137,18 @@ sdk.getUsuario().then(u => console.log(u.nome));
  * Rodar:
  * pnpm --filter @app/backend dev
  */
+
+/**
+ * ✅ 9. Otimizando com Turborepo (opcional)
+ * npx create-turbo@latest
+ * Ele cuida de cache, paralelismo e build incremental entre pacotes
+ */
+
+/**
+ * 🧪 Desafio do Dia 23:
+ * 1. Crie um monorepo com apps/backend, apps/frontend e packages/types
+ * 2. Exporte um tipo Usuario no types e use em ambos os apps
+ * 3. Crie um SDK simples (getUsuario()) no pacote sdk
+ * 4. Integre o SDK no frontend com autocomplete
+ * 5. (Avançado): use Vitest no monorepo com testes que usam tipos globais
+ */
