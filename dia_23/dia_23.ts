@@ -152,3 +152,121 @@ sdk.getUsuario().then(u => console.log(u.nome));
  * 4. Integre o SDK no frontend com autocomplete
  * 5. (Avançado): use Vitest no monorepo com testes que usam tipos globais
  */
+
+// 📁 pnpm-workspace.yaml
+// packages:
+//   - apps/*
+//   - packages/*
+
+// mkdir ts-monorepo
+// cd ts-monorepo
+
+// mkdir -p apps/backend
+// mkdir -p apps/frontend
+// mkdir -p packages/types
+// mkdir -p packages/sdk
+
+// pnpm init -y
+
+// 📄 tsconfig.json (raiz)
+// {
+//   "compilerOptions": {
+//     "baseUrl": ".",
+//     "paths": {
+//       "@app/types": ["packages/types/src"],
+//       "@app/sdk": ["packages/sdk/src"]
+//     },
+//     "target": "ES2020",
+//     "module": "ESNext",
+//     "moduleResolution": "Node",
+//     "strict": true,
+//     "esModuleInterop": true,
+//     "forceConsistentCasingInFileNames": true
+//   }
+// }
+
+// 📄 packages/types/package.json
+// {
+//   "name": "@app/types",
+//   "version": "1.0.0",
+//   "main": "src/index.ts"
+// }
+
+// 📄 packages/types/src/index.ts
+export interface Usuario {
+  id: number;
+  nome: string;
+}
+
+// 📄 packages/sdk/package.json
+// {
+//   "name": "@app/sdk",
+//   "version": "1.0.0",
+//   "main": "src/index.ts",
+//   "dependencies": {
+//     "@app/types": "*"
+//   }
+// }
+
+// 📄 packages/sdk/src/index.ts
+import { Usuario } from "@app/types";
+
+export const sdk = {
+  getUsuario: async (): Promise<Usuario> => {
+    const res = await fetch("http://localhost:3000/api/usuario");
+    return res.json();
+  }
+};
+
+// cd apps/backend
+// pnpm init -y
+
+// 📄 apps/backend/package.json
+//{
+//   "name": "@app/backend",
+//   "version": "1.0.0",
+//   "type": "module",
+//   "scripts": {
+//     "dev": "node src/server.js"
+//   },
+//   "dependencies": {
+//     "@app/types": "*"
+//   }
+// }
+
+// 📄 apps/backend/src/server.js
+import express from "express";
+const app = express();
+app.use(express.json());
+
+app.get("/api/usuario", (req, res) => {
+  res.json({ id: 1, nome: "Gabriel" });
+});
+
+app.listen(3000, () => console.log("Servidor rodando em http://localhost:3000"));
+
+// Obs: Como estamos usando .js, não precisa de TS aqui, mas você pode configurar TS se quiser (ts-node, etc.).
+
+// cd apps/frontend
+// pnpm init -y
+
+// 📄 apps/frontend/package.json
+// {
+//   "name": "@app/frontend",
+//   "version": "1.0.0",
+//   "scripts": {
+//     "dev": "vite"
+//   },
+//   "dependencies": {
+//     "@app/types": "*",
+//     "@app/sdk": "*"
+//   }
+// }
+
+// 📄 apps/frontend/index.ts
+import { sdk } from "@app/sdk";
+
+sdk.getUsuario().then((usuario) => {
+  console.log(`Usuário: ${usuario.nome}`);
+});
+
